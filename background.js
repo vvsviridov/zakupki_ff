@@ -1,28 +1,35 @@
+var filter = ''
+var response = ''
+
+// https://github.com/SheetJS/sheetjs/blob/master/demos/chrome/table.js
+
+browser.runtime.onMessage.addListener(async data => {
+  if (data.type === 'getFilter') {
+    await browser.runtime.sendMessage({type: 'filter', filter: response})
+    // saveXl()
+  }
+})
 
 function listener(details) {
+  filter = new TextDecoder().decode(new Uint8Array(details.requestBody.raw[0].bytes))
 
-  var postedString = decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes)));
-  console.log(new TextDecoder().decode(new Uint8Array(details.requestBody.raw[0].bytes)))
-  // console.log(details)
-  // let filter = browser.webRequest.filterResponseData(details.requestId);
-  // let decoder = new TextDecoder("utf-8");
-  // let encoder = new TextEncoder();
-
-  // filter.ondata = event => {
-  //   let str = decoder.decode(event.data, {stream: true});
-  //   // Just change any instance of Example in the HTTP response
-  //   // to WebExtension Example.
-  //   str = str.replace(/Example/g, 'WebExtension Example');
-  //   filter.write(encoder.encode(str));
-  //   filter.disconnect();
-  // }
-
-  // return {};
+  let responseFilter = browser.webRequest.filterResponseData(details.requestId)
+  let decoder = new TextDecoder("utf-8")
+  responseFilter.ondata = event => {
+    response += decoder.decode(event.data, {stream: true})
+  }
 }
 
 browser.webRequest.onBeforeRequest.addListener(
   listener,
-  {urls: ["https://old.zakupki.mos.ru/api/Cssp/Sku/*"]},
-  // {urls: ["https://old.zakupki.mos.ru/*"], types: ["main_frame"]},
-  ["blocking", "requestBody"]
-);
+  {urls: ["https://old.zakupki.mos.ru/api/Cssp/Sku/PostQuery"]},
+  ["requestBody", "blocking"]
+)
+
+function saveXl() {
+  console.log('ready to save xl')
+  const wb = XLSX.utils.book_new()
+  const ws = XLSX.utils.json_to_sheet(response)
+  XLSX.utils.book_append_sheet(wb, ws, 'ws_name')
+  XLSX.writeFile(wb, "export.xlsx")
+}

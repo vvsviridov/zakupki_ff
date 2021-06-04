@@ -1,21 +1,34 @@
 {
-
-  "description": "Altering HTTP responses",
+  "browser_action": {
+    "default_title": "Search Filter",
+    "default_popup": "popup.html",
+    "browser_style": true,
+    "default_icon": {
+        "48": "pen.svg"
+    }
+  },
+  "description": "Getting zakupki.mos.ru search filter",
   "manifest_version": 2,
-  "name": "http-response-filter",
+  "name": "get-search-filter",
   "version": "1.0",
-  "homepage_url": "https://github.com/mdn/webextensions-examples/tree/master/http-response",
+  "homepage_url": "https://github.com/vvsviridov/zakupki_ff",
   "icons": {
     "48": "pen.svg"
   },
 
   "permissions": [
-    "webRequest", "webRequestBlocking", "https://old.zakupki.mos.ru/*"
+    "webRequest", "webRequestBlocking", "https://old.zakupki.mos.ru/*", "downloads"
   ],
 
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background.js", "xlsx.full.min.js"]
   },
+
+  "content_scripts": [{
+    "matches": ["https://old.zakupki.mos.ru/*"],
+    "js": ["content.js", "xlsx.full.min.js"],
+    "run_at": "document_end"
+  }],
 
   "browser_specific_settings": {
     "gecko": {
